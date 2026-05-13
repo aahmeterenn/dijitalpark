@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Akıllı Günlük — Dijital Hafıza Asistanı</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+        :root {
+            --primary: #6C3CE1;
+            --primary-light: #8B5CF6;
+            --primary-dark: #5227CC;
+            --accent: #F59E0B;
+            --bg: #0F0E17;
+            --bg-card: #1A1929;
+            --bg-card-hover: #231F3A;
+            --text: #FFFFFE;
+            --text-muted: #A7A9BE;
+            --gradient-1: linear-gradient(135deg, #6C3CE1 0%, #A855F7 50%, #6366F1 100%);
+            --gradient-2: linear-gradient(135deg, #F59E0B 0%, #F97316 100%);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* ── Navbar ── */
+        nav {
+            position: fixed; top: 0; width: 100%; z-index: 100;
+            background: rgba(15, 14, 23, 0.85);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(108, 60, 225, 0.15);
+            padding: 0.9rem 2rem;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        nav .logo {
+            font-weight: 800; font-size: 1.3rem;
+            background: var(--gradient-1); -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        nav .logo span { font-weight: 400; opacity: 0.7; }
+        nav ul { list-style: none; display: flex; gap: 2rem; }
+        nav ul li a {
+            color: var(--text-muted); text-decoration: none; font-size: 0.9rem;
+            font-weight: 500; transition: color 0.3s;
+        }
+        nav ul li a:hover { color: var(--text); }
+
+        /* ── Hero ── */
+        .hero {
+            min-height: 100vh; display: flex; align-items: center;
+            justify-content: center; text-align: center;
+            padding: 6rem 2rem 4rem;
+            position: relative;
+            background: radial-gradient(ellipse at 50% 0%, rgba(108,60,225,0.18) 0%, transparent 60%);
+        }
+        .hero::before {
+            content: ''; position: absolute; top: 50%; left: 50%;
+            width: 600px; height: 600px; border-radius: 50%;
+            background: radial-gradient(circle, rgba(108,60,225,0.12) 0%, transparent 70%);
+            transform: translate(-50%, -50%);
+            animation: pulse 4s ease-in-out infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.6; }
+            50% { transform: translate(-50%, -50%) scale(1.15); opacity: 1; }
+        }
+        .hero-content { position: relative; z-index: 2; max-width: 800px; }
+        .hero-badge {
+            display: inline-block; padding: 0.4rem 1.2rem;
+            background: rgba(108,60,225,0.15); border: 1px solid rgba(108,60,225,0.3);
+            border-radius: 50px; font-size: 0.8rem; color: var(--primary-light);
+            font-weight: 600; margin-bottom: 1.5rem; letter-spacing: 0.5px;
+        }
+        .hero h1 {
+            font-size: clamp(2.2rem, 5vw, 3.8rem); font-weight: 800;
+            line-height: 1.15; margin-bottom: 1.2rem;
+        }
+        .hero h1 .highlight {
+            background: var(--gradient-1); -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .hero p {
+            font-size: 1.15rem; color: var(--text-muted); max-width: 600px;
+            margin: 0 auto 2.5rem; line-height: 1.7;
+        }
+        .hero-cta {
+            display: inline-flex; align-items: center; gap: 0.6rem;
+            padding: 0.85rem 2.2rem; background: var(--gradient-1);
+            color: #fff; border: none; border-radius: 12px;
+            font-size: 1rem; font-weight: 600; cursor: pointer;
+            text-decoration: none; transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 25px rgba(108,60,225,0.35);
+        }
+        .hero-cta:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 35px rgba(108,60,225,0.5);
+        }
+
+        /* ── Orb (emoji icon) ── */
+        .orb {
+            width: 120px; height: 120px; margin: 0 auto 2rem;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 4rem;
+            background: radial-gradient(circle, rgba(108,60,225,0.2), transparent);
+            border-radius: 50%;
+            animation: float 3s ease-in-out infinite;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-12px); }
+        }
+
+        /* ── Section Generic ── */
+        section { padding: 5rem 2rem; max-width: 1200px; margin: 0 auto; }
+        .section-label {
+            font-size: 0.8rem; font-weight: 700; color: var(--primary-light);
+            text-transform: uppercase; letter-spacing: 2px; margin-bottom: 0.8rem;
+        }
+        .section-title {
+            font-size: clamp(1.8rem, 3vw, 2.4rem); font-weight: 700;
+            margin-bottom: 1rem;
+        }
+        .section-desc {
+            color: var(--text-muted); max-width: 650px; font-size: 1.05rem;
+            line-height: 1.7; margin-bottom: 3rem;
+        }
+
+        /* ── How It Works ── */
+        .steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.5rem; }
+        .step {
+            background: var(--bg-card); border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 16px; padding: 2rem 1.5rem; text-align: center;
+            transition: transform 0.3s, border-color 0.3s;
+        }
+        .step:hover {
+            transform: translateY(-4px);
+            border-color: rgba(108,60,225,0.3);
+        }
+        .step-icon { font-size: 2.4rem; margin-bottom: 1rem; }
+        .step-num {
+            display: inline-block; width: 28px; height: 28px; line-height: 28px;
+            border-radius: 50%; background: var(--gradient-1); font-size: 0.75rem;
+            font-weight: 700; margin-bottom: 0.8rem;
+        }
+        .step h3 { font-size: 1.05rem; font-weight: 600; margin-bottom: 0.5rem; }
+        .step p { font-size: 0.88rem; color: var(--text-muted); line-height: 1.5; }
+
+        /* ── Features ── */
+        .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.5rem; }
+        .feature-card {
+            background: var(--bg-card); border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 16px; padding: 2rem; transition: transform 0.3s, border-color 0.3s;
+        }
+        .feature-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(108,60,225,0.3);
+        }
+        .feature-icon {
+            width: 48px; height: 48px; border-radius: 12px;
+            background: rgba(108,60,225,0.12); display: flex;
+            align-items: center; justify-content: center;
+            font-size: 1.5rem; margin-bottom: 1.2rem;
+        }
+        .feature-card h3 { font-size: 1.1rem; font-weight: 600; margin-bottom: 0.5rem; }
+        .feature-card p { font-size: 0.9rem; color: var(--text-muted); line-height: 1.6; }
+
+        /* ── Architecture ── */
+        .arch-layers { display: flex; flex-direction: column; gap: 1.2rem; }
+        .arch-layer {
+            display: flex; align-items: center; gap: 1.5rem;
+            background: var(--bg-card); border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 16px; padding: 1.5rem 2rem;
+            transition: border-color 0.3s;
+        }
+        .arch-layer:hover { border-color: rgba(108,60,225,0.3); }
+        .arch-layer .layer-icon { font-size: 2rem; flex-shrink: 0; }
+        .arch-layer h3 { font-size: 1.05rem; font-weight: 600; margin-bottom: 0.3rem; }
+        .arch-layer p { font-size: 0.88rem; color: var(--text-muted); }
+
+        /* ── Chat Demo ── */
+        .demo-wrapper {
+            max-width: 520px; margin: 0 auto;
+            background: var(--bg-card); border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 20px; overflow: hidden;
+        }
+        .demo-header {
+            padding: 1rem 1.5rem; display: flex; align-items: center; gap: 0.8rem;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .demo-header .dot { width: 10px; height: 10px; border-radius: 50%; }
+        .demo-header .dot.r { background: #EF4444; }
+        .demo-header .dot.y { background: #F59E0B; }
+        .demo-header .dot.g { background: #22C55E; }
+        .demo-header span { font-size: 0.85rem; color: var(--text-muted); margin-left: 0.5rem; }
+        .demo-chat { padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem; }
+        .bubble {
+            padding: 0.8rem 1.2rem; border-radius: 16px; font-size: 0.9rem;
+            max-width: 85%; line-height: 1.5; animation: fadeUp 0.5s ease-out both;
+        }
+        .bubble.user {
+            background: var(--primary); align-self: flex-end;
+            border-bottom-right-radius: 4px;
+        }
+        .bubble.ai {
+            background: rgba(255,255,255,0.06); align-self: flex-start;
+            border-bottom-left-radius: 4px; color: var(--text-muted);
+        }
+        .bubble:nth-child(1) { animation-delay: 0.2s; }
+        .bubble:nth-child(2) { animation-delay: 0.7s; }
+        .bubble:nth-child(3) { animation-delay: 1.2s; }
+        .bubble:nth-child(4) { animation-delay: 1.7s; }
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ── Tech Stack ── */
+        .tech-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; }
+        .tech-item {
+            background: var(--bg-card); border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 12px; padding: 1.2rem; text-align: center;
+            transition: border-color 0.3s;
+        }
+        .tech-item:hover { border-color: rgba(108,60,225,0.3); }
+        .tech-item .tech-icon { font-size: 2rem; margin-bottom: 0.5rem; }
+        .tech-item h4 { font-size: 0.9rem; font-weight: 600; }
+        .tech-item p { font-size: 0.75rem; color: var(--text-muted); }
+
+        /* ── Team ── */
+        .team-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem; }
+        .team-card {
+            background: var(--bg-card); border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 16px; padding: 2rem; text-align: center;
+            transition: transform 0.3s;
+        }
+        .team-card:hover { transform: translateY(-4px); }
+        .team-avatar {
+            width: 80px; height: 80px; border-radius: 50%; margin: 0 auto 1rem;
+            background: var(--gradient-1); display: flex; align-items: center;
+            justify-content: center; font-size: 2rem; font-weight: 700;
+            overflow: hidden;
+        }
+        .team-avatar img { width: 100%; height: 100%; object-fit: cover; }
+        .team-card h3 { font-size: 1.05rem; font-weight: 600; }
+        .team-card .role {
+            font-size: 0.8rem; color: var(--primary-light); font-weight: 500;
+            margin-top: 0.3rem;
+        }
+        .team-card a {
+            display: inline-block; margin-top: 0.8rem; font-size: 0.82rem;
+            color: var(--text-muted); text-decoration: none;
+            border: 1px solid rgba(255,255,255,0.1); border-radius: 8px;
+            padding: 0.35rem 1rem; transition: border-color 0.3s, color 0.3s;
+        }
+        .team-card a:hover { border-color: var(--primary-light); color: var(--text); }
+
+        /* ── Example Questions ── */
+        .questions-list {
+            display: flex; flex-wrap: wrap; gap: 0.8rem; margin-top: 1.5rem;
+        }
+        .question-chip {
+            padding: 0.5rem 1.2rem; border-radius: 50px;
+            background: rgba(108,60,225,0.1); border: 1px solid rgba(108,60,225,0.25);
+            color: var(--primary-light); font-size: 0.85rem; font-weight: 500;
+            transition: background 0.3s;
+        }
+        .question-chip:hover { background: rgba(108,60,225,0.2); }
+
+        /* ── Footer ── */
+        footer {
+            text-align: center; padding: 3rem 2rem;
+            border-top: 1px solid rgba(255,255,255,0.05);
+            color: var(--text-muted); font-size: 0.85rem;
+        }
+        footer .logo-foot {
+            font-weight: 800; font-size: 1.2rem;
+            background: var(--gradient-1); -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent; margin-bottom: 0.5rem;
+        }
+
+        /* ── Responsive ── */
+        @media (max-width: 768px) {
+            nav ul { display: none; }
+            .arch-layer { flex-direction: column; text-align: center; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Navbar -->
+    <nav>
+        <div class="logo">Akıllı Günlük <span>AI</span></div>
+        <ul>
+            <li><a href="#nasil">Nasıl Çalışır</a></li>
+            <li><a href="#ozellikler">Özellikler</a></li>
+            <li><a href="#mimari">Mimari</a></li>
+            <li><a href="#teknoloji">Teknoloji</a></li>
+            <li><a href="#takim">Takım</a></li>
+        </ul>
+    </nav>
+
+    <!-- Hero -->
+    <section class="hero">
+        <div class="hero-content">
+            <div class="orb">🧠</div>
+            <div class="hero-badge">🚀 MVP — Girişimcilik Atölyesi 2025</div>
+            <h1>Günlüğünüzü<br><span class="highlight">Dijital Hafızanıza</span><br>Dönüştürün</h1>
+            <p>
+                Yapay zekâ destekli kişisel günlük uygulaması. Yazdıklarınızdan duygu, ilişki ve
+                davranış örüntülerinizi analiz eder; geçmişinizle konuşmanızı sağlar.
+            </p>
+            <a href="#nasil" class="hero-cta">Keşfet ↓</a>
+        </div>
+    </section>
+
+    <!-- Nasıl Çalışır -->
+    <section id="nasil">
+        <div class="section-label">Süreç</div>
+        <h2 class="section-title">Nasıl Çalışır?</h2>
+        <p class="section-desc">
+            Günlük yazın veya ses kaydı ekleyin — gerisini yapay zekâ halleder.
+        </p>
+        <div class="steps">
+            <div class="step">
+                <div class="step-icon">✍️</div>
+                <div class="step-num">1</div>
+                <h3>Günlük Yaz</h3>
+                <p>Metin veya ses kaydı olarak günlüğünüzü ekleyin.</p>
+            </div>
+            <div class="step">
+                <div class="step-icon">🔍</div>
+                <div class="step-num">2</div>
+                <h3>AI Analiz</h3>
+                <p>Sistem kişi, duygu, olay ve ilişkileri otomatik çıkarır.</p>
+            </div>
+            <div class="step">
+                <div class="step-icon">🧩</div>
+                <div class="step-num">3</div>
+                <h3>Hafıza Oluştur</h3>
+                <p>Veriler vektör hafıza ve bilgi grafına kaydedilir.</p>
+            </div>
+            <div class="step">
+                <div class="step-icon">💬</div>
+                <div class="step-num">4</div>
+                <h3>Soru Sor</h3>
+                <p>Geçmişinize doğal dilde sorular sorun, anlamlı yanıtlar alın.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Chat Demo -->
+    <section id="demo">
+        <div class="section-label">Demo</div>
+        <h2 class="section-title" style="text-align:center;">Geçmişinizle Konuşun</h2>
+        <p class="section-desc" style="text-align:center; margin: 0 auto 2rem;">
+            Dijital hafızanıza soru sorun — AI kişisel geçmişinizden yanıtlar üretsin.
+        </p>
+        <div class="demo-wrapper">
+            <div class="demo-header">
+                <div class="dot r"></div><div class="dot y"></div><div class="dot g"></div>
+                <span>Akıllı Günlük Chat</span>
+            </div>
+            <div class="demo-chat">
+                <div class="bubble user">Bu yıl en çok kime sinirlendiğim?</div>
+                <div class="bubble ai">Günlüklerine göre bu yıl en sık sinirlendiğin kişi iş arkadaşın Murat olmuş. 8 farklı günlükte olumsuz duygu ile bahsetmişsin, özellikle proje teslim tarihlerinde. 📊</div>
+                <div class="bubble user">Hâlâ kim bana borçlu?</div>
+                <div class="bubble ai">Açık olan 2 borç kaydın var: Ahmet — 500₺ (Mart), Zeynep — 200₺ (Mayıs). İkisi de henüz "kapandı" olarak işaretlenmemiş. 💰</div>
+            </div>
+        </div>
+
+        <div style="text-align:center; margin-top: 2.5rem;">
+            <div class="section-label" style="margin-bottom:0.5rem;">Örnek Sorular</div>
+            <div class="questions-list" style="justify-content:center;">
+                <span class="question-chip">Kimden destek görmüşüm?</span>
+                <span class="question-chip">Hangi dönem stresim yoğun?</span>
+                <span class="question-chip">Ayşe ile ilişki trendim?</span>
+                <span class="question-chip">Bu ay moralim nasıldı?</span>
+                <span class="question-chip">En mutlu olduğum günler?</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Özellikler -->
+    <section id="ozellikler">
+        <div class="section-label">Özellikler</div>
+        <h2 class="section-title">Neler Yapabilir?</h2>
+        <p class="section-desc">Klasik bir günlük uygulamasının ötesinde — kişisel bir dijital ikiz.</p>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">🎭</div>
+                <h3>Duygu Analizi</h3>
+                <p>Her günlüğünüzdeki duygu durumunu analiz eder, zaman içindeki duygu değişimlerinizi takip eder.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">👥</div>
+                <h3>İlişki Grafı</h3>
+                <p>Günlüklerinizdeki kişileri tanır, ilişki dinamiklerini ve trendleri (iyileşen/kötüleşen) gösterir.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">📅</div>
+                <h3>Olay Takibi</h3>
+                <p>Borçlar, sözler, sağlık konuları gibi olayları otomatik tespit eder ve açık/kapandı durumlarını izler.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🧬</div>
+                <h3>Dijital Persona</h3>
+                <p>Hobiler, tercihler, davranış kalıpları ve kişilik özelliklerinizden dijital profilinizi oluşturur.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🔐</div>
+                <h3>Gizlilik Öncelikli</h3>
+                <p>Şifreli veri saklama, minimum LLM veri gönderimi, veri silme hakkı ve local AI desteği.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🎤</div>
+                <h3>Sesli Giriş</h3>
+                <p>Ses kaydıyla günlük ekleme — Whisper / Gemini ile otomatik metne çevirme.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Mimari -->
+    <section id="mimari">
+        <div class="section-label">Teknik</div>
+        <h2 class="section-title">Üç Katmanlı AI Mimarisi</h2>
+        <p class="section-desc">Veri işleme, bilgi modeli ve akıl yürütme katmanlarıyla çalışan modüler bir sistem.</p>
+        <div class="arch-layers">
+            <div class="arch-layer">
+                <div class="layer-icon">⚙️</div>
+                <div>
+                    <h3>1 — Veri İşleme Katmanı</h3>
+                    <p>Metin normalizasyonu → Chunking → Embedding (1536D) → Entity, Relation, Event ve Sentiment Extraction</p>
+                </div>
+            </div>
+            <div class="arch-layer">
+                <div class="layer-icon">🗄️</div>
+                <div>
+                    <h3>2 — Bilgi Katmanı</h3>
+                    <p>PostgreSQL + pgvector ile vektör hafıza, ilişki grafı (relations/events), dijital persona profili</p>
+                </div>
+            </div>
+            <div class="arch-layer">
+                <div class="layer-icon">🧠</div>
+                <div>
+                    <h3>3 — Akıl Yürütme Katmanı</h3>
+                    <p>RAG Engine + Graph Engine + Persona Engine → Memory Engine ile çoklu kaynak birleştirme ve LLM reasoning</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pipeline -->
+    <section>
+        <div class="section-label">Pipeline</div>
+        <h2 class="section-title">AI İşleme Hattı</h2>
+        <p class="section-desc">Her günlük girişi 7 adımlık bir AI pipeline'dan geçer.</p>
+        <div style="display:flex; flex-wrap:wrap; gap:0.6rem; align-items:center;">
+            <span style="background:rgba(108,60,225,0.15); border:1px solid rgba(108,60,225,0.3); padding:0.5rem 1rem; border-radius:10px; font-size:0.85rem; font-weight:500;">📝 Normalization</span>
+            <span style="color:var(--primary-light); font-size:1.2rem;">→</span>
+            <span style="background:rgba(108,60,225,0.15); border:1px solid rgba(108,60,225,0.3); padding:0.5rem 1rem; border-radius:10px; font-size:0.85rem; font-weight:500;">✂️ Chunking</span>
+            <span style="color:var(--primary-light); font-size:1.2rem;">→</span>
+            <span style="background:rgba(108,60,225,0.15); border:1px solid rgba(108,60,225,0.3); padding:0.5rem 1rem; border-radius:10px; font-size:0.85rem; font-weight:500;">📐 Embedding</span>
+            <span style="color:var(--primary-light); font-size:1.2rem;">→</span>
+            <span style="background:rgba(108,60,225,0.15); border:1px solid rgba(108,60,225,0.3); padding:0.5rem 1rem; border-radius:10px; font-size:0.85rem; font-weight:500;">👤 Entity</span>
+            <span style="color:var(--primary-light); font-size:1.2rem;">→</span>
+            <span style="background:rgba(108,60,225,0.15); border:1px solid rgba(108,60,225,0.3); padding:0.5rem 1rem; border-radius:10px; font-size:0.85rem; font-weight:500;">🔗 Relation</span>
+            <span style="color:var(--primary-light); font-size:1.2rem;">→</span>
+            <span style="background:rgba(108,60,225,0.15); border:1px solid rgba(108,60,225,0.3); padding:0.5rem 1rem; border-radius:10px; font-size:0.85rem; font-weight:500;">📌 Event</span>
+            <span style="color:var(--primary-light); font-size:1.2rem;">→</span>
+            <span style="background:rgba(245,158,11,0.15); border:1px solid rgba(245,158,11,0.3); padding:0.5rem 1rem; border-radius:10px; font-size:0.85rem; font-weight:600; color:#F59E0B;">🎭 Sentiment</span>
+        </div>
+    </section>
+
+    <!-- Teknoloji -->
+    <section id="teknoloji">
+        <div class="section-label">Tech Stack</div>
+        <h2 class="section-title">Kullandığımız Teknolojiler</h2>
+        <p class="section-desc">Modüler ve ölçeklenebilir bir mimari — birden fazla LLM provider desteği.</p>
+        <div class="tech-grid">
+            <div class="tech-item">
+                <div class="tech-icon">📱</div>
+                <h4>Flutter</h4>
+                <p>Mobil Uygulama</p>
+            </div>
+            <div class="tech-item">
+                <div class="tech-icon">⚡</div>
+                <h4>FastAPI</h4>
+                <p>Backend API & Worker</p>
+            </div>
+            <div class="tech-item">
+                <div class="tech-icon">🐘</div>
+                <h4>PostgreSQL</h4>
+                <p>Supabase + pgvector</p>
+            </div>
+            <div class="tech-item">
+                <div class="tech-icon">✨</div>
+                <h4>Gemini</h4>
+                <p>2.5 Flash / Embedding</p>
+            </div>
+            <div class="tech-item">
+                <div class="tech-icon">🦙</div>
+                <h4>Groq / Llama</h4>
+                <p>Hızlı Inference</p>
+            </div>
+            <div class="tech-item">
+                <div class="tech-icon">🤖</div>
+                <h4>OpenAI / GPT-4o</h4>
+                <p>Premium Reasoning</p>
+            </div>
+            <div class="tech-item">
+                <div class="tech-icon">🐳</div>
+                <h4>Docker</h4>
+                <p>Container Orchestration</p>
+            </div>
+            <div class="tech-item">
+                <div class="tech-icon">📊</div>
+                <h4>Grafana</h4>
+                <p>Monitoring & Analytics</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- LLM Modüler -->
+    <section>
+        <div class="section-label">Ölçeklenebilirlik</div>
+        <h2 class="section-title">Modüler LLM Mimarisi</h2>
+        <p class="section-desc">Tek bir AI sağlayıcısına bağımlı değiliz. Runtime'da provider ve model değiştirme desteği.</p>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">🔄</div>
+                <h3>Değiştirilebilir Provider</h3>
+                <p>Gemini, Groq, OpenAI, OpenRouter, Ollama — Admin Panel üzerinden anlık geçiş, restart gerektirmez.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🏠</div>
+                <h3>Local AI Desteği</h3>
+                <p>Ollama ile yerel model çalıştırma. Tam gizlilik, sıfır dış bağımlılık. Ticari ölçek için hazır.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">⚖️</div>
+                <h3>Görev Bazlı Routing</h3>
+                <p>Intent analizi için hafif model, reasoning için güçlü model. Token kullanım takibi ve maliyet optimizasyonu.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Takım -->
+    <section id="takim">
+        <div class="section-label">Ekip</div>
+        <h2 class="section-title">Takımımız</h2>
+        <p class="section-desc">Girişimcilik Atölyesi kapsamında projeyi geliştiren ekip.</p>
+        <div class="team-grid">
+            <div class="team-card">
+                <div class="team-avatar">
+                    <img src="https://github.com/mehmetaligumusler.png" alt="MAG"
+                         onerror="this.style.display='none'; this.parentElement.textContent='MA';">
+                </div>
+                <h3>Mehmet Ali Gümüşler</h3>
+                <div class="role">Takım Lideri</div>
+                <a href="https://github.com/mehmetaligumusler" target="_blank">GitHub ↗</a>
+            </div>
+            <div class="team-card">
+                <div class="team-avatar">
+                    <img src="https://github.com/gokaydervisoglu.png" alt="GD"
+                         onerror="this.style.display='none'; this.parentElement.textContent='GD';">
+                </div>
+                <h3>Gökay Dervişoğlu</h3>
+                <div class="role">Teknik Lider</div>
+                <a href="https://github.com/gokaydervisoglu" target="_blank">GitHub ↗</a>
+            </div>
+            <div class="team-card">
+                <div class="team-avatar">
+                    <img src="https://github.com/cakirerayburak.png" alt="EBC"
+                         onerror="this.style.display='none'; this.parentElement.textContent='EB';">
+                </div>
+                <h3>Eray Burak Çakır</h3>
+                <div class="role">SWE / ML Mühendisi</div>
+                <a href="https://github.com/cakirerayburak" target="_blank">GitHub ↗</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="logo-foot">Akıllı Günlük AI</div>
+        <p>Dijital Hafıza & Kişisel Yapay Zekâ İkizi</p>
+        <p style="margin-top:0.5rem; font-size:0.78rem; opacity:0.5;">Girişimcilik Atölyesi 2025 — MVP Sunumu</p>
+    </footer>
+
+</body>
+</html>
