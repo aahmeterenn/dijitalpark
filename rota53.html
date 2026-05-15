@@ -971,6 +971,49 @@ img{max-width:100%;display:block}
   border-radius:0 8px 8px 0;margin:8px 0;
 }
 
+/* Lokasyon-içi benzer noktalar */
+.loc-similar{
+  margin-top:14px;padding-top:14px;
+  border-top:1px dashed rgba(184,115,46,.3);
+}
+.loc-similar .lsim-head{
+  font-family:"Geist Mono",monospace;font-size:9px;letter-spacing:.22em;
+  color:var(--copper);text-transform:uppercase;margin-bottom:4px;
+  display:flex;align-items:center;gap:6px;
+}
+.loc-similar .lsim-title{
+  font-family:"Fraunces",serif;font-size:14px;font-weight:500;
+  color:var(--tea-800);line-height:1.3;margin-bottom:10px;
+}
+.loc-similar .lsim-title em{font-style:italic;color:var(--copper)}
+.loc-similar-list{display:flex;flex-direction:column;gap:7px}
+.loc-sim-card{
+  display:flex;align-items:center;gap:10px;padding:9px 11px;
+  background:#fff;border:1px solid var(--line);border-radius:10px;
+  text-decoration:none;color:inherit;cursor:pointer;
+  transition:transform .15s, box-shadow .15s;
+}
+.loc-sim-card:active{transform:scale(.98)}
+.loc-sim-card:hover{box-shadow:0 4px 12px rgba(0,0,0,.06)}
+.loc-sim-card .city-tag-sm{
+  flex-shrink:0;font-size:8.5px;letter-spacing:.12em;color:#fff;
+  padding:3px 8px;border-radius:6px;font-weight:600;font-family:"Geist Mono",monospace;
+  white-space:nowrap;
+}
+.loc-sim-card .body{flex:1;min-width:0}
+.loc-sim-card .nm{
+  font-family:"Fraunces",serif;font-size:13px;font-weight:500;
+  color:var(--tea-800);line-height:1.2;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.loc-sim-card .info{
+  font-size:10.5px;color:var(--ink-soft);margin-top:1px;line-height:1.3;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.loc-sim-card .arr{
+  color:var(--copper);font-size:14px;opacity:.6;flex-shrink:0;
+}
+
 /* ==================== MAP WITH COMMENTS (stabil yeni yapı) ==================== */
 /* ==================== MAP - Custom SVG harita ==================== */
 .s-map{background:#0D3823;position:relative;overflow:hidden}
@@ -1728,6 +1771,7 @@ img{max-width:100%;display:block}
   font-size:13px;z-index:200;display:flex;align-items:center;gap:8px;
   box-shadow:0 10px 30px rgba(0,0,0,.3);
   transition:transform .4s cubic-bezier(.34,1.56,.64,1);
+  cursor:pointer;
 }
 .toast.show{transform:translateX(-50%) translateY(0)}
 
@@ -1768,7 +1812,7 @@ img{max-width:100%;display:block}
 <div class="phone-shell">
   <div class="screen-viewport" id="viewport">
     <!-- TOAST -->
-    <div class="toast" id="toast">
+    <div class="toast" id="toast" onclick="hideToast()">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12l5 5L20 7"/></svg>
       <span id="toast-text">İşlem başarılı</span>
     </div>
@@ -1951,69 +1995,141 @@ const EVENTS = [
 
 // Doğu Karadeniz'deki benzer lokasyonlar (Rize dışı)
 // Her rota anahtarı için bölgesel alternatifler
-const SIMILAR_LOCATIONS = {
-  irtifa:[
+// Türkiye geneli benzer noktalar — kategoriye göre gruplanmış
+// Her lokasyon kategori tipine göre eşleştirilir (yayla, şelale, kale, müze, yemek, atölye, çay, deniz, manastır)
+const SIMILAR_BY_CATEGORY = {
+  yayla:[
     {name:'Uzungöl', city:'Trabzon', info:'Sis ve dağ gölü manzarası', km:142, altitude:1090, mapQuery:'Uzungol Caykara Trabzon'},
     {name:'Sümela Yaylası', city:'Trabzon', info:'Maçka eteklerinde yayla', km:158, altitude:1700, mapQuery:'Sumela Yaylasi Macka'},
-    {name:'Karagöl-Sahara Milli Parkı', city:'Artvin', info:'Krater gölü ve şahane manzara', km:128, altitude:1860, mapQuery:'Karagol Sahara Milli Parki Savsat'},
     {name:'Kafkasör Yaylası', city:'Artvin', info:'Boğa güreşleri ve panorama', km:102, altitude:1300, mapQuery:'Kafkasor Yaylasi Artvin'},
     {name:'Çakırgöl Yaylası', city:'Gümüşhane', info:'Kayak merkezi ve dağ gölü', km:185, altitude:2550, mapQuery:'Cakirgol Kayak Merkezi'},
-    {name:'Hıdırnebi Yaylası', city:'Trabzon', info:'Akçaabat üstü yüksek yayla', km:118, altitude:1580, mapQuery:'Hidirnebi Yaylasi Akcaabat'},
-    {name:'Sis Dağı Yaylası', city:'Giresun', info:'Adından da belli, sisler içinde', km:215, altitude:2275, mapQuery:'Sis Dagi Yaylasi Giresun'},
+    {name:'Bolu Abant Gölü', city:'Bolu', info:'Krater gölü, çam ormanları', km:1080, altitude:1325, mapQuery:'Abant Golu Bolu'},
+    {name:'Erciyes Dağı', city:'Kayseri', info:'Türkiye\'nin önemli kayak merkezi', km:1450, altitude:2200, mapQuery:'Erciyes Kayak Merkezi'},
+    {name:'Uludağ', city:'Bursa', info:'İstanbul\'a en yakın yayla', km:1380, altitude:1900, mapQuery:'Uludag Bursa'},
+    {name:'Ilgaz Dağı', city:'Kastamonu', info:'Karadeniz\'in batı yaylası', km:780, altitude:1850, mapQuery:'Ilgaz Dagi'},
   ],
-  mayal:[
-    {name:'Akçaabat Köftecisi', city:'Trabzon', info:'Karadeniz\'in efsane köftesi', km:108, altitude:8, mapQuery:'Akcaabat Kofte Trabzon'},
-    {name:'Of Pidesi (Tarihi)', city:'Trabzon', info:'Açık ateşte taş fırın pidesi', km:62, altitude:5, mapQuery:'Of Pide Trabzon'},
-    {name:'Beşikdüzü Sahil Tesisleri', city:'Trabzon', info:'Deniz manzaralı meze sofraları', km:125, altitude:3, mapQuery:'Besikduzu Sahil Trabzon'},
-    {name:'Hopa Çay Sosyal Tesisleri', city:'Artvin', info:'Hopa sahilinde demli çay', km:85, altitude:5, mapQuery:'Hopa Sosyal Tesisleri Artvin'},
-    {name:'Espiye Mahsuni Restoran', city:'Giresun', info:'Yöresel et ve hamsi', km:178, altitude:10, mapQuery:'Espiye Mahsuni Giresun'},
-    {name:'Yusufeli Alabalık Tesisleri', city:'Artvin', info:'Çoruh kıyısı taze alabalık', km:152, altitude:520, mapQuery:'Yusufeli Alabalik Tesisleri'},
-  ],
-  kadim:[
-    {name:'Sümela Manastırı', city:'Trabzon', info:'Kayalara oyulmuş Bizans manastırı', km:158, altitude:1200, mapQuery:'Sumela Manastiri Macka'},
-    {name:'Ayasofya Müzesi', city:'Trabzon', info:'13. yy Komnenos eseri', km:78, altitude:30, mapQuery:'Trabzon Ayasofya Muzesi'},
-    {name:'Trabzon Müzesi (Kostaki Konağı)', city:'Trabzon', info:'Yunan tüccarın mirası', km:78, altitude:25, mapQuery:'Trabzon Muzesi Kostaki Konagi'},
-    {name:'Şavşat Kaleleri', city:'Artvin', info:'Çevre dağlarına dağılmış surlar', km:148, altitude:1100, mapQuery:'Savsat Kalesi Artvin'},
-    {name:'Borçka Karagöl', city:'Artvin', info:'Heyelan gölü ve eski yerleşim', km:115, altitude:1450, mapQuery:'Borcka Karagol Artvin'},
-    {name:'Giresun Adası', city:'Giresun', info:'Karadeniz\'in tek adası', km:225, altitude:5, mapQuery:'Giresun Adasi'},
-    {name:'Zağnos Tabyaları', city:'Trabzon', info:'Şehrin tarihi savunma hattı', km:78, altitude:120, mapQuery:'Zagnos Tabyalari Trabzon'},
-    {name:'Tirebolu Saint Jean Kalesi', city:'Giresun', info:'Sahil üstü Bizans kalesi', km:165, altitude:25, mapQuery:'Saint Jean Kalesi Tirebolu'},
-  ],
-  akim:[
-    {name:'Tamara Şelalesi', city:'Artvin', info:'Borçka yakını gizli şelale', km:118, altitude:540, mapQuery:'Tamara Selalesi Borcka'},
+  selale:[
     {name:'Mençuna Şelalesi', city:'Artvin', info:'Arhavi vadisinin incisi', km:75, altitude:280, mapQuery:'Mencuna Selalesi Arhavi'},
+    {name:'Tamara Şelalesi', city:'Artvin', info:'Borçka yakını gizli şelale', km:118, altitude:540, mapQuery:'Tamara Selalesi Borcka'},
     {name:'Maral Şelalesi', city:'Artvin', info:'Borçka\'nın sembolü', km:108, altitude:380, mapQuery:'Maral Selalesi Borcka'},
-    {name:'Kapuz Şelalesi', city:'Trabzon', info:'Maçka\'da derin orman içinde', km:148, altitude:850, mapQuery:'Kapuz Selalesi Macka'},
-    {name:'Çoruh Nehri Rafting', city:'Artvin', info:'Türkiye\'nin zorlu raftinği', km:152, altitude:480, mapQuery:'Coruh Nehri Rafting Yusufeli'},
-    {name:'Erikli Şelalesi', city:'Trabzon', info:'Of yakını gözden uzak şelale', km:85, altitude:120, mapQuery:'Erikli Selalesi Of Trabzon'},
-    {name:'Hopa Cankurtaran Şelalesi', city:'Artvin', info:'Cankurtaran geçidi yamacında', km:88, altitude:680, mapQuery:'Cankurtaran Selalesi Hopa'},
-    {name:'Çal Mağarası', city:'Trabzon', info:'Düzköy\'de uzun mağara sistemi', km:128, altitude:1050, mapQuery:'Cal Magarasi Duzkoy Trabzon'},
+    {name:'Düden Şelalesi', city:'Antalya', info:'Akdeniz\'e dökülen şelale', km:1320, altitude:90, mapQuery:'Duden Selalesi Antalya'},
+    {name:'Manavgat Şelalesi', city:'Antalya', info:'Yatay ve geniş su perdesi', km:1380, altitude:60, mapQuery:'Manavgat Selalesi'},
+    {name:'Muradiye Şelaleleri', city:'Van', info:'Doğu Anadolu\'nun en güzel suları', km:980, altitude:1640, mapQuery:'Muradiye Selaleleri Van'},
+    {name:'Kurşunlu Şelalesi', city:'Antalya', info:'Doğal park içinde 7 göletli', km:1340, altitude:160, mapQuery:'Kursunlu Selalesi Antalya'},
   ],
-  huner:[
+  kale:[
+    {name:'Şavşat Kaleleri', city:'Artvin', info:'Çevre dağlarına dağılmış surlar', km:148, altitude:1100, mapQuery:'Savsat Kalesi Artvin'},
+    {name:'Tirebolu Saint Jean Kalesi', city:'Giresun', info:'Sahil üstü Bizans kalesi', km:165, altitude:25, mapQuery:'Saint Jean Kalesi Tirebolu'},
+    {name:'Mardin Kalesi', city:'Mardin', info:'Mezopotamya\'ya bakan taş kale', km:1380, altitude:1080, mapQuery:'Mardin Kalesi'},
+    {name:'Ankara Kalesi', city:'Ankara', info:'Roma-Bizans-Selçuklu izleri', km:820, altitude:980, mapQuery:'Ankara Kalesi'},
+    {name:'Bodrum Kalesi', city:'Muğla', info:'Sualtı Arkeoloji Müzesi', km:1620, altitude:30, mapQuery:'Bodrum Kalesi'},
+    {name:'Diyarbakır Surları', city:'Diyarbakır', info:'5.7 km uzunluğunda dünya mirası', km:1320, altitude:680, mapQuery:'Diyarbakir Surlari'},
+    {name:'Anadolu Hisarı', city:'İstanbul', info:'Boğazın iki yakasındaki Osmanlı surları', km:1180, altitude:30, mapQuery:'Anadolu Hisari Istanbul'},
+  ],
+  muze:[
+    {name:'Ayasofya (Trabzon)', city:'Trabzon', info:'13. yy Komnenos eseri', km:78, altitude:30, mapQuery:'Trabzon Ayasofya Muzesi'},
+    {name:'Topkapı Sarayı', city:'İstanbul', info:'Osmanlı\'nın 400 yıllık sarayı', km:1180, altitude:40, mapQuery:'Topkapi Sarayi Istanbul'},
+    {name:'Mevlana Müzesi', city:'Konya', info:'Mevlana türbesi ve sema dergahı', km:1180, altitude:1020, mapQuery:'Mevlana Muzesi Konya'},
+    {name:'Anadolu Medeniyetleri Müzesi', city:'Ankara', info:'Hitit, Frig, Urartu eserleri', km:820, altitude:980, mapQuery:'Anadolu Medeniyetleri Muzesi'},
+    {name:'Antalya Müzesi', city:'Antalya', info:'Likya ve Roma medeniyetleri', km:1320, altitude:60, mapQuery:'Antalya Muzesi'},
+    {name:'Göbeklitepe', city:'Şanlıurfa', info:'Dünyanın bilinen en eski tapınağı', km:1280, altitude:760, mapQuery:'Gobeklitepe Sanliurfa'},
+  ],
+  manastir:[
+    {name:'Sümela Manastırı', city:'Trabzon', info:'Kayalara oyulmuş Bizans manastırı', km:158, altitude:1200, mapQuery:'Sumela Manastiri Macka'},
+    {name:'Hagia Maria Manastırı', city:'Trabzon', info:'Vazelon Manastırı, Maçka', km:165, altitude:1450, mapQuery:'Vazelon Manastiri Macka'},
+    {name:'Aya Yorgi (Heybeliada)', city:'İstanbul', info:'Marmara\'nın tepe manastırı', km:1180, altitude:140, mapQuery:'Aya Yorgi Heybeliada'},
+    {name:'Deyrulzafaran Manastırı', city:'Mardin', info:'5. yy Süryani manastırı', km:1380, altitude:1080, mapQuery:'Deyrulzafaran Mardin'},
+    {name:'Mor Gabriel Manastırı', city:'Mardin', info:'Hâlâ aktif en eski Süryani manastırı', km:1420, altitude:920, mapQuery:'Mor Gabriel Manastiri'},
+  ],
+  yemek:[
+    {name:'Akçaabat Köftesi (Trabzon)', city:'Trabzon', info:'Karadeniz\'in efsane köftesi', km:108, altitude:8, mapQuery:'Akcaabat Kofte Trabzon'},
+    {name:'Of Pidesi (Trabzon)', city:'Trabzon', info:'Açık ateşte taş fırın pidesi', km:62, altitude:5, mapQuery:'Of Pide Trabzon'},
+    {name:'Gaziantep Sofrası', city:'Gaziantep', info:'Türk mutfağının başkenti', km:1220, altitude:850, mapQuery:'Gaziantep Mutfak'},
+    {name:'Adana Kebabı', city:'Adana', info:'Kebabın klasik şehri', km:1280, altitude:25, mapQuery:'Adana Kebap'},
+    {name:'Hatay Künefesi', city:'Hatay', info:'Tatlının ustası şehir', km:1380, altitude:80, mapQuery:'Hatay Kunefe Antakya'},
+    {name:'Konya Etli Ekmek', city:'Konya', info:'Ovanın geleneksel sofrası', km:1180, altitude:1020, mapQuery:'Konya Etli Ekmek'},
+    {name:'Bursa İskender', city:'Bursa', info:'İskender kebabının doğduğu yer', km:1380, altitude:155, mapQuery:'Bursa Iskender Kebap'},
+  ],
+  cay:[
+    {name:'Çaykur Çay Bahçeleri', city:'Rize', info:'Bölgenin merkezindeki bahçeler', km:5, altitude:50, mapQuery:'Caykur Caybahcesi Rize'},
+    {name:'Ataköy Çay Tesisleri', city:'Trabzon', info:'Trabzon ova çay üretimi', km:90, altitude:30, mapQuery:'Atakoy Cay Tesisi'},
+    {name:'Karagül Çay Ocağı (Eyüp)', city:'İstanbul', info:'İstanbul\'un meşhur çay ocağı', km:1180, altitude:30, mapQuery:'Karagol Cay Ocagi Eyup'},
+    {name:'Mado Çay (Maraş)', city:'K.Maraş', info:'Geleneksel Türk çayı sunum', km:1220, altitude:570, mapQuery:'Mado Maras'},
+  ],
+  atolye:[
     {name:'Trabzon Bedesteni', city:'Trabzon', info:'Tarihi çarşıda el sanatları', km:78, altitude:25, mapQuery:'Trabzon Bedesteni'},
-    {name:'Akçaabat Hediyelikçileri', city:'Trabzon', info:'Yöresel ahşap ve bakır', km:108, altitude:10, mapQuery:'Akcaabat Hediyelik Trabzon'},
-    {name:'Tirebolu Bakırcıları', city:'Giresun', info:'Geleneksel bakır işleme', km:165, altitude:8, mapQuery:'Tirebolu Bakircilar Giresun'},
-    {name:'Of Bıçakçıları', city:'Trabzon', info:'El yapımı bıçak ustaları', km:62, altitude:5, mapQuery:'Of Bicakcilar Trabzon'},
-    {name:'Artvin El Sanatları Çarşısı', city:'Artvin', info:'Halı, kilim, ahşap oyma', km:95, altitude:600, mapQuery:'Artvin Carsisi El Sanatlari'},
-    {name:'Yusufeli Halıcılığı', city:'Artvin', info:'Geleneksel dokuma atölyeleri', km:152, altitude:520, mapQuery:'Yusufeli Halicilik Atvin'},
+    {name:'Bursa Kapalı Çarşı', city:'Bursa', info:'İpek ve dokuma atölyeleri', km:1380, altitude:155, mapQuery:'Bursa Kapali Carsi'},
+    {name:'Beypazarı Sokakları', city:'Ankara', info:'Bakır ve gümüş ustaları', km:880, altitude:725, mapQuery:'Beypazari Ankara'},
+    {name:'Avanos Çömlek Atölyeleri', city:'Nevşehir', info:'Kızılırmak kilinden çömlek', km:1080, altitude:910, mapQuery:'Avanos Comlek'},
+    {name:'Şile Bezi Atölyeleri', city:'İstanbul', info:'Geleneksel pamuklu dokuma', km:1230, altitude:15, mapQuery:'Sile Bezi Atolye'},
+    {name:'Mardin Telkari Atölyeleri', city:'Mardin', info:'Gümüş tel işçiliği', km:1380, altitude:1080, mapQuery:'Mardin Telkari'},
+    {name:'Adıyaman Bakır Atölyeleri', city:'Adıyaman', info:'El dövme bakır cezve, sini', km:1250, altitude:720, mapQuery:'Adiyaman Bakir'},
   ],
-  karisik:[
-    {name:'Uzungöl', city:'Trabzon', info:'Bölgenin simgesi', km:142, altitude:1090, mapQuery:'Uzungol Trabzon'},
-    {name:'Sümela Manastırı', city:'Trabzon', info:'Kayadan tapınak', km:158, altitude:1200, mapQuery:'Sumela Manastiri'},
-    {name:'Mençuna Şelalesi', city:'Artvin', info:'Saklı şelale', km:75, altitude:280, mapQuery:'Mencuna Selalesi'},
-    {name:'Karagöl-Sahara', city:'Artvin', info:'Krater gölü', km:128, altitude:1860, mapQuery:'Karagol Sahara'},
-    {name:'Akçaabat Köftecisi', city:'Trabzon', info:'Lezzet klasiği', km:108, altitude:8, mapQuery:'Akcaabat Kofte'},
+  deniz:[
+    {name:'Hopa Sahili', city:'Artvin', info:'Karadeniz\'in son sahili', km:88, altitude:5, mapQuery:'Hopa Sahili Artvin'},
+    {name:'Amasra Sahili', city:'Bartın', info:'Karadeniz\'in cenneti', km:680, altitude:10, mapQuery:'Amasra Bartin'},
+    {name:'Ölüdeniz', city:'Muğla', info:'Akdeniz\'in mavi laguna', km:1680, altitude:5, mapQuery:'Oludeniz Fethiye'},
+    {name:'Kabak Koyu', city:'Muğla', info:'Faralya\'nın gizli koyu', km:1680, altitude:30, mapQuery:'Kabak Koyu Faralya'},
+    {name:'Akyaka Koyu', city:'Muğla', info:'Sazlık ve serbest dalış', km:1620, altitude:5, mapQuery:'Akyaka Mugla'},
+  ],
+  rafting:[
+    {name:'Çoruh Nehri Rafting', city:'Artvin', info:'Türkiye\'nin zorlu raftinği', km:152, altitude:480, mapQuery:'Coruh Nehri Rafting Yusufeli'},
+    {name:'Köprülü Kanyon', city:'Antalya', info:'Manavgat Çayı rafting', km:1380, altitude:230, mapQuery:'Koprulu Kanyon Rafting'},
+    {name:'Melen Çayı Rafting', city:'Düzce', info:'Karadeniz girişi rafting', km:1080, altitude:120, mapQuery:'Melen Cayi Rafting'},
+    {name:'Antalya Beşkonak Rafting', city:'Antalya', info:'Köprülü Kanyon\'da macera', km:1380, altitude:230, mapQuery:'Beskonak Rafting'},
+  ],
+  // Genel fallback - her zaman gösterilebilir
+  manzara:[
+    {name:'Kapadokya', city:'Nevşehir', info:'Peri bacaları, balon turu', km:1080, altitude:1100, mapQuery:'Kapadokya Goreme'},
+    {name:'Pamukkale', city:'Denizli', info:'Beyaz traverten terasları', km:1480, altitude:340, mapQuery:'Pamukkale Denizli'},
+    {name:'Ölüdeniz', city:'Muğla', info:'Mavi laguna ve yamaç paraşütü', km:1680, altitude:5, mapQuery:'Oludeniz Fethiye'},
+    {name:'Nemrut Dağı', city:'Adıyaman', info:'Devasa taş heykeller, gün doğumu', km:1250, altitude:2150, mapQuery:'Nemrut Dagi Adiyaman'},
   ],
 };
 
+// Lokasyon adından/bilgisinden kategori çıkar
+function getLocationCategory(loc){
+  const text = (loc.name + ' ' + (loc.info||'')).toLowerCase();
+  if(text.match(/yayla|dağ|zirve|hazindağ|kaçkar|huser/)) return 'yayla';
+  if(text.match(/şelale|selale|dere kıyısı|şelalesi/)) return 'selale';
+  if(text.match(/kale|sur|hisar|tabya/)) return 'kale';
+  if(text.match(/müze|muze|köşk|kösk|saray/)) return 'muze';
+  if(text.match(/manastır|manastir|kilise|hagia|sumela|sümela/)) return 'manastir';
+  if(text.match(/rafting|kanyon|nehir|çoruh|coruh/)) return 'rafting';
+  if(text.match(/sahil|liman|plaj|deniz/)) return 'deniz';
+  if(text.match(/lokanta|restoran|köfte|pide|muhlama|fırın|firin|yemek|kahvaltı|kahvalti|tatlı|tatli|hamsi|balık|balik|köy sofrası/)) return 'yemek';
+  if(text.match(/çay|cay|caykur|çaykur|demli|sosyal tesis/)) return 'cay';
+  if(text.match(/atölye|atolye|usta|zanaat|bakır|bakir|el sanat|şimşir|simsir|tulum|kemenç|ağaç işleme|yün|dokuma/)) return 'atolye';
+  return 'manzara'; // fallback - genel manzara/gezi noktaları
+}
+
+// Bir lokasyona benzer noktaları al (kategori bazlı)
+function getSimilarForLocation(loc){
+  const cat = getLocationCategory(loc);
+  let list = SIMILAR_BY_CATEGORY[cat] || SIMILAR_BY_CATEGORY.manzara;
+  // En fazla 6 göster
+  return list.slice(0, 6);
+}
+
 // Şehir → renk
 const CITY_COLORS = {
-  'Trabzon':'#8B0000',
-  'Artvin':'#1A5F7A',
-  'Giresun':'#5A8A3A',
-  'Gümüşhane':'#7A6B4F',
-  'Ordu':'#A85332',
-  'Bayburt':'#5C5470',
+  // Doğu Karadeniz
+  'Trabzon':'#8B0000','Artvin':'#1A5F7A','Giresun':'#5A8A3A','Gümüşhane':'#7A6B4F',
+  'Ordu':'#A85332','Bayburt':'#5C5470','Rize':'#1F8055',
+  // Marmara
+  'İstanbul':'#C9302C','Bursa':'#2F8C5C','Kocaeli':'#A87838','Tekirdağ':'#7048A8',
+  // Ege
+  'İzmir':'#1A8FAB','Muğla':'#3B82B5','Denizli':'#C19A78','Aydın':'#A8902F',
+  // Akdeniz
+  'Antalya':'#0F8A6E','Mersin':'#A85F32','Hatay':'#8B3A3A','Adana':'#B05C2D','K.Maraş':'#7B2E2E',
+  // İç Anadolu
+  'Ankara':'#2A5D7C','Konya':'#806020','Kayseri':'#4A5A6E','Nevşehir':'#A87838','Eskişehir':'#5F7A9B',
+  // Karadeniz batı
+  'Kastamonu':'#4F6B4A','Bartın':'#1A8FAB','Bolu':'#3FA67A','Düzce':'#4F8F6E',
+  // Doğu Anadolu
+  'Van':'#1F507A','Erzurum':'#5C5470','Kars':'#6B5A4A',
+  // Güneydoğu
+  'Mardin':'#A87038','Diyarbakır':'#7A3E2E','Şanlıurfa':'#A8633A','Gaziantep':'#7B4A2E','Adıyaman':'#8B5A2E',
 };
 
 // Yöneticiler (sabit 3 kişi)
@@ -2417,6 +2533,9 @@ function navigate(to){
     if(typeof stopCamera==='function') stopCamera();
   }
 
+  // Ekran değişiminde varsa toast'u temizle - eski toast takılı kalmasın
+  if(typeof hideToast === 'function') hideToast();
+
   if(current) current.classList.remove('active');
   target.classList.add('active');
   state.current = to;
@@ -2440,12 +2559,27 @@ function navigate(to){
   }
 }
 
+let _toastTimer = null;
 function showToast(text, ok=true){
   const t = document.getElementById('toast');
+  if(!t) return;
+  // Önceki timeout varsa iptal et - toast takılıp kalmasın
+  if(_toastTimer){ clearTimeout(_toastTimer); _toastTimer = null; }
   document.getElementById('toast-text').textContent = text;
   t.style.background = ok ? 'var(--tea-800)' : 'var(--danger)';
   t.classList.add('show');
-  setTimeout(()=>t.classList.remove('show'), 2400);
+  _toastTimer = setTimeout(()=>{
+    t.classList.remove('show');
+    _toastTimer = null;
+  }, 2800);
+}
+
+// Manuel kapatma için
+function hideToast(){
+  const t = document.getElementById('toast');
+  if(!t) return;
+  if(_toastTimer){ clearTimeout(_toastTimer); _toastTimer = null; }
+  t.classList.remove('show');
 }
 
 // ==================== SVG ICONS ====================
@@ -2895,31 +3029,165 @@ function buildRouteDetail(){
 function buildMap(){
   return `
     <div class="screen s-map" data-screen="map">
-      <!-- Tam ekran şematik harita -->
+      <!-- Tam ekran şematik gerçekçi harita -->
       <div class="map-fullscreen" id="map-canvas-wrap">
-        <!-- SVG şematik harita - filterMapBy ile dolar -->
         <svg class="map-svg" id="map-svg" viewBox="0 0 400 700" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
           <defs>
-            <radialGradient id="mapBg" cx="50%" cy="40%">
-              <stop offset="0%" stop-color="#2a5e42"/>
-              <stop offset="100%" stop-color="#0F4A30"/>
-            </radialGradient>
+            <!-- Arka plan gradient'i: yüksek dağlar yeşil, alçak ovalar açık, deniz mavi -->
+            <linearGradient id="mapBgV" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#3a2e22"/>
+              <stop offset="30%" stop-color="#3d5a3e"/>
+              <stop offset="60%" stop-color="#4a7050"/>
+              <stop offset="85%" stop-color="#5a8a6a"/>
+              <stop offset="100%" stop-color="#3a5e88"/>
+            </linearGradient>
+            <!-- Çay tarlası dokusu -->
+            <pattern id="teaField" width="6" height="6" patternUnits="userSpaceOnUse">
+              <rect width="6" height="6" fill="#4a7d4d"/>
+              <circle cx="3" cy="3" r="1.2" fill="#5e9560"/>
+            </pattern>
+            <!-- Orman dokusu -->
+            <pattern id="forestPat" width="8" height="8" patternUnits="userSpaceOnUse">
+              <rect width="8" height="8" fill="#2d4a30"/>
+              <circle cx="2" cy="2" r="1" fill="#3d6238"/>
+              <circle cx="6" cy="6" r="1" fill="#3d6238"/>
+              <circle cx="6" cy="2" r=".8" fill="#365236"/>
+            </pattern>
+            <!-- Kar/zirve dokusu -->
+            <linearGradient id="snowPeak" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#e8e8e8"/>
+              <stop offset="50%" stop-color="#a8a8a8"/>
+              <stop offset="100%" stop-color="#6a6a6a"/>
+            </linearGradient>
+            <!-- Deniz gradient -->
+            <linearGradient id="seaGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#4a7ba8"/>
+              <stop offset="100%" stop-color="#2d5478"/>
+            </linearGradient>
+            <!-- Dağ gölgeleri -->
+            <linearGradient id="mountShadow" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="#5a7a55" stop-opacity=".8"/>
+              <stop offset="100%" stop-color="#2a3a25" stop-opacity=".5"/>
+            </linearGradient>
             <pattern id="mapGrid" width="40" height="40" patternUnits="userSpaceOnUse">
-              <path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(255,255,255,.05)" stroke-width="1"/>
+              <path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(255,255,255,.04)" stroke-width=".5"/>
             </pattern>
-            <pattern id="mapGridMinor" width="10" height="10" patternUnits="userSpaceOnUse">
-              <path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(255,255,255,.025)" stroke-width=".5"/>
-            </pattern>
+            <!-- Pusula -->
+            <symbol id="compass" viewBox="0 0 40 40">
+              <circle cx="20" cy="20" r="18" fill="rgba(255,255,255,.92)" stroke="rgba(0,0,0,.2)"/>
+              <path d="M20 4 L24 20 L20 36 L16 20 Z" fill="#C73E2E"/>
+              <path d="M20 4 L24 20 L20 20 Z" fill="#A8362A"/>
+              <circle cx="20" cy="20" r="2" fill="#333"/>
+              <text x="20" y="3" text-anchor="middle" font-family="Geist Mono" font-size="6" fill="#333" font-weight="700">K</text>
+            </symbol>
           </defs>
-          <rect width="400" height="700" fill="url(#mapBg)"/>
-          <rect width="400" height="700" fill="url(#mapGridMinor)"/>
+
+          <!-- Ana arka plan -->
+          <rect width="400" height="700" fill="url(#mapBgV)"/>
           <rect width="400" height="700" fill="url(#mapGrid)"/>
-          <!-- Sahil çizgisi - basit dekoratif -->
-          <path d="M -10 580 Q 80 560 160 590 T 320 575 T 410 595 L 410 720 L -10 720 Z" fill="rgba(59,130,181,.15)" stroke="rgba(91,196,148,.2)" stroke-width="1"/>
-          <text x="200" y="660" font-family="Geist Mono, monospace" font-size="11" fill="rgba(255,255,255,.25)" text-anchor="middle" letter-spacing="3">KARADENİZ</text>
-          <!-- Dağ silsilesi - dekoratif -->
-          <path d="M -10 280 Q 60 220 130 250 Q 200 200 260 240 Q 330 210 410 260 L 410 100 L -10 100 Z" fill="rgba(91,196,148,.08)" stroke="rgba(91,196,148,.15)" stroke-width="1"/>
-          <text x="200" y="165" font-family="Geist Mono, monospace" font-size="11" fill="rgba(255,255,255,.25)" text-anchor="middle" letter-spacing="3">KAÇKAR DAĞLARI</text>
+
+          <!-- KARADENİZ (alt kısım, gerçekçi kıyı şeridi) -->
+          <path d="M -10 600 Q 30 590 70 600 Q 110 605 145 595 Q 180 588 220 600 Q 260 612 300 600 Q 340 590 410 605 L 410 720 L -10 720 Z"
+                fill="url(#seaGrad)" stroke="rgba(91,196,148,.3)" stroke-width="1.2"/>
+          <!-- Deniz dalgaları -->
+          <path d="M 20 615 Q 40 612 60 615 T 100 615 T 140 615 T 180 615 T 220 615 T 260 615 T 300 615 T 340 615 T 380 615"
+                fill="none" stroke="rgba(255,255,255,.15)" stroke-width=".8" stroke-linecap="round"/>
+          <path d="M 30 635 Q 50 632 70 635 T 110 635 T 150 635 T 190 635 T 230 635 T 270 635 T 310 635 T 350 635 T 390 635"
+                fill="none" stroke="rgba(255,255,255,.1)" stroke-width=".8" stroke-linecap="round"/>
+          <path d="M 25 660 Q 45 657 65 660 T 105 660 T 145 660 T 185 660 T 225 660 T 265 660 T 305 660 T 345 660 T 385 660"
+                fill="none" stroke="rgba(255,255,255,.08)" stroke-width=".7" stroke-linecap="round"/>
+          <text x="200" y="690" font-family="Fraunces, serif" font-style="italic" font-size="13" fill="rgba(255,255,255,.55)" text-anchor="middle" letter-spacing="6">KARADENİZ</text>
+
+          <!-- KAÇKAR DAĞLARI (üst kısım, gerçekçi dağ silsilesi) -->
+          <!-- Arka kat dağlar -->
+          <path d="M -10 200 L 30 130 L 70 165 L 110 110 L 145 145 L 180 95 L 215 130 L 250 100 L 290 140 L 330 105 L 365 155 L 410 125 L 410 0 L -10 0 Z"
+                fill="url(#mountShadow)" opacity=".7"/>
+          <!-- Ön kat dağlar (orman dokulu) -->
+          <path d="M -10 280 L 25 240 L 60 270 L 100 220 L 140 260 L 175 230 L 215 270 L 250 235 L 295 275 L 335 240 L 380 280 L 410 260 L 410 100 L -10 100 Z"
+                fill="url(#forestPat)" opacity=".75"/>
+          <!-- Karlı zirveler -->
+          <path d="M 135 145 L 155 105 L 175 145 Z" fill="url(#snowPeak)" opacity=".85"/>
+          <path d="M 235 135 L 255 95 L 280 140 Z" fill="url(#snowPeak)" opacity=".9"/>
+          <path d="M 305 130 L 330 100 L 355 145 Z" fill="url(#snowPeak)" opacity=".85"/>
+          <text x="200" y="50" font-family="Fraunces, serif" font-style="italic" font-size="14" fill="rgba(255,255,255,.65)" text-anchor="middle" letter-spacing="5">KAÇKAR DAĞLARI</text>
+          <text x="240" y="78" font-family="Geist Mono" font-size="8" fill="rgba(255,255,255,.4)" text-anchor="middle" letter-spacing="2">3.937 m</text>
+
+          <!-- ÇAY TARLALARI - orta kuşak (gerçekçi şerit) -->
+          <path d="M -10 320 Q 80 300 160 315 Q 230 325 290 310 Q 350 300 410 315 L 410 420 Q 350 410 290 425 Q 230 435 160 425 Q 80 415 -10 425 Z"
+                fill="url(#teaField)" opacity=".4"/>
+          <text x="200" y="370" font-family="Geist Mono" font-size="9" fill="rgba(255,255,255,.45)" text-anchor="middle" letter-spacing="3">ÇAY TARLALARI</text>
+
+          <!-- NEHİRLER (Fırtına Deresi - dağdan denize uzanan) -->
+          <path d="M 230 130 Q 220 200 215 280 Q 210 350 220 430 Q 230 510 240 580 Q 245 600 250 615"
+                fill="none" stroke="#5BA3D9" stroke-width="2.5" stroke-linecap="round" opacity=".75"/>
+          <!-- İkinci nehir (İyidere) -->
+          <path d="M 90 150 Q 85 220 95 290 Q 105 360 100 440 Q 95 520 110 600"
+                fill="none" stroke="#5BA3D9" stroke-width="2" stroke-linecap="round" opacity=".65"/>
+          <!-- Küçük dereler -->
+          <path d="M 320 170 Q 310 230 320 290 Q 330 360 325 440 Q 315 520 330 600"
+                fill="none" stroke="#5BA3D9" stroke-width="1.8" stroke-linecap="round" opacity=".55"/>
+          <path d="M 160 200 Q 155 270 165 340 Q 175 410 170 490 Q 165 560 175 605"
+                fill="none" stroke="#5BA3D9" stroke-width="1.4" stroke-linecap="round" opacity=".45"/>
+
+          <!-- İLÇE/ŞEHİR İŞARETLERİ - kara üzerinde -->
+          <!-- Rize Merkez (büyük) -->
+          <g>
+            <circle cx="105" cy="570" r="9" fill="rgba(217,164,106,.35)" stroke="#FFD89A" stroke-width="1.5"/>
+            <circle cx="105" cy="570" r="3.5" fill="#FFD89A"/>
+            <text x="105" y="555" font-family="Fraunces" font-size="10" fill="#fff" text-anchor="middle" font-weight="500">RİZE</text>
+          </g>
+          <!-- Çamlıhemşin -->
+          <g>
+            <circle cx="245" cy="390" r="6" fill="rgba(217,164,106,.25)" stroke="rgba(255,216,154,.7)" stroke-width="1"/>
+            <circle cx="245" cy="390" r="2.5" fill="#FFD89A" opacity=".85"/>
+            <text x="245" y="378" font-family="Geist Mono" font-size="7" fill="rgba(255,255,255,.75)" text-anchor="middle" letter-spacing="1">Çamlıhemşin</text>
+          </g>
+          <!-- İkizdere -->
+          <g>
+            <circle cx="105" cy="380" r="6" fill="rgba(217,164,106,.2)" stroke="rgba(255,216,154,.6)" stroke-width="1"/>
+            <circle cx="105" cy="380" r="2.5" fill="#FFD89A" opacity=".8"/>
+            <text x="105" y="368" font-family="Geist Mono" font-size="7" fill="rgba(255,255,255,.7)" text-anchor="middle" letter-spacing="1">İkizdere</text>
+          </g>
+          <!-- Pazar -->
+          <g>
+            <circle cx="240" cy="570" r="5" fill="rgba(217,164,106,.2)" stroke="rgba(255,216,154,.55)" stroke-width="1"/>
+            <text x="240" y="585" font-family="Geist Mono" font-size="7" fill="rgba(255,255,255,.65)" text-anchor="middle" letter-spacing="1">Pazar</text>
+          </g>
+          <!-- Çayeli -->
+          <g>
+            <circle cx="180" cy="572" r="5" fill="rgba(217,164,106,.2)" stroke="rgba(255,216,154,.55)" stroke-width="1"/>
+            <text x="180" y="587" font-family="Geist Mono" font-size="7" fill="rgba(255,255,255,.65)" text-anchor="middle" letter-spacing="1">Çayeli</text>
+          </g>
+          <!-- Ardeşen -->
+          <g>
+            <circle cx="305" cy="568" r="5" fill="rgba(217,164,106,.2)" stroke="rgba(255,216,154,.55)" stroke-width="1"/>
+            <text x="305" y="583" font-family="Geist Mono" font-size="7" fill="rgba(255,255,255,.65)" text-anchor="middle" letter-spacing="1">Ardeşen</text>
+          </g>
+          <!-- Fındıklı -->
+          <g>
+            <circle cx="355" cy="570" r="5" fill="rgba(217,164,106,.2)" stroke="rgba(255,216,154,.55)" stroke-width="1"/>
+            <text x="355" y="585" font-family="Geist Mono" font-size="7" fill="rgba(255,255,255,.65)" text-anchor="middle" letter-spacing="1">Fındıklı</text>
+          </g>
+          <!-- İyidere -->
+          <g>
+            <circle cx="45" cy="570" r="5" fill="rgba(217,164,106,.2)" stroke="rgba(255,216,154,.55)" stroke-width="1"/>
+            <text x="45" y="585" font-family="Geist Mono" font-size="7" fill="rgba(255,255,255,.65)" text-anchor="middle" letter-spacing="1">İyidere</text>
+          </g>
+
+          <!-- Karayolu (E70 sahil yolu) -->
+          <path d="M -10 570 L 50 568 L 110 572 L 180 572 L 240 570 L 305 568 L 360 570 L 410 568"
+                fill="none" stroke="rgba(255,216,154,.35)" stroke-width="2.5" stroke-dasharray="6 3" opacity=".55"/>
+
+          <!-- Pusula sağ üstte -->
+          <use href="#compass" x="350" y="15" width="36" height="36"/>
+
+          <!-- Ölçek -->
+          <g transform="translate(20, 678)">
+            <rect width="40" height="3" fill="#fff" opacity=".7"/>
+            <rect x="40" width="40" height="3" fill="rgba(255,255,255,.3)"/>
+            <text x="40" y="-3" font-family="Geist Mono" font-size="7" fill="rgba(255,255,255,.6)" text-anchor="middle" letter-spacing="1">10 KM</text>
+          </g>
+
           <!-- Pin'ler ve çizgiler - dinamik olarak filterMapBy doldurur -->
           <g id="map-routes-layer"></g>
           <g id="map-pins-layer"></g>
@@ -4671,7 +4939,7 @@ function renderRdContent(tabIdx){
         </div>`;
     });
 
-    content.innerHTML = groupsHtml + renderSimilarLocations(r.key);
+    content.innerHTML = groupsHtml;
   } else if(tabIdx===1){
     // Map list — Google Maps sıralı görüntüleme
     content.innerHTML = `
@@ -4731,357 +4999,21 @@ function toggleLocBlog(chevEl){
 
 // Lokasyon hikayesi üret (blog tarzı)
 function generateLocationBlog(loc, route){
-  if(loc.blog) return loc.blog;
-  const intros = {
-    'irtifa':
-      `<div class="lb-tag">YAYLA HİKÂYESİ</div>
-       <h5><em>${loc.name}</em>: bulutların üzerinde bir nokta</h5>
-       <p>Rakımı ${loc.altitude} metreyi bulan ${loc.name}, Kaçkar dağ silsilesinin sessiz tanıklarından biri. Yaz aylarında çiçek tarlaları, kış aylarında bembeyaz örtüsüyle her mevsim farklı bir hikâye anlatır.</p>
-       <div class="quote">Yukarıda hava farklı kokar — yarısı çay, yarısı kekik, üçüncü payı sis.</div>
-       <p>${loc.info}. ${loc.altitude>2000?'Yüksek rakım nedeniyle nefes nefese kalabilirsiniz, yavaş çıkmanızı öneririz.':'Aile dostu bir yayla, çocuklar bile rahatça keşfedebilir.'}</p>`,
-    'mayal':
-      `<div class="lb-tag">SOFRA HİKÂYESİ</div>
-       <h5><em>${loc.name}</em>'da mayalanan damak</h5>
-       <p>Rize sofrası, dağdan inen suyun bereketine, denizden gelen taze ürüne, bahçeden toplanan otlara dayanır. ${loc.name}, bu mayanın ustaca yoğrulduğu yerlerden biri.</p>
-       <div class="quote">Burada yemek tabağa değil, sohbete servis edilir.</div>
-       <p>${loc.info}. Yoğun saatler 12:30-14:00 ve 19:00-21:00 arası — sakin bir tecrübe için dışında deneyin. Karadeniz pidesi, muhlama ve hamsi her zaman güvenli seçimler.</p>`,
-    'kadim':
-      `<div class="lb-tag">TARİH SAYFASI</div>
-       <h5><em>${loc.name}</em>: yüzyıllara açılan kapı</h5>
-       <p>${loc.name}, Rize'nin kadim hafızasında özel bir sayfa. Bizans'tan Osmanlı'ya, Rumlardan Hemşinlilere kadar pek çok kültürün izini taşıyan bu topraklarda, taş duvarlar ve eski meydanlar hâlâ konuşmaya devam ediyor.</p>
-       <div class="quote">Eski taşlar susmaz, sadece dinleyici bekler.</div>
-       <p>${loc.info}. ${loc.difficulty==='Zor'||loc.difficulty==='Çok Zor'?'Yürüyüş ayakkabısıyla gelin — yol engebeli olabilir.':'Erken saatlerde gelirseniz kalabalıkla karşılaşmazsınız.'} Fotoğraf için en iyi ışık ikindide.</p>`,
-    'akim':
-      `<div class="lb-tag">SU & RÜZGÂR</div>
-       <h5><em>${loc.name}</em>: doğanın akıttığı sayfa</h5>
-       <p>Karadeniz'in suyu, sadece denize akmaz; vadileri oyar, köprüleri yıkar, kayaları zarif bir formda bırakır. ${loc.name} bu hareketin tanığı.</p>
-       <div class="quote">Su sabırsız değil — sadece kendi yolunda kararlı.</div>
-       <p>${loc.info}. ${loc.name.toLowerCase().includes('paraşüt')?'Hava şartları belirleyici — sabah erken gidin, rüzgâr koşullarını kontrol edin.':'Yağmurlu günlerden sonra suyun debisi artar, fotoğraf için inanılmaz manzara çıkar ama dikkatli olun.'}</p>`,
-    'huner':
-      `<div class="lb-tag">USTANIN ATÖLYESİ</div>
-       <h5><em>${loc.name}</em>: el emeğinin sessiz dili</h5>
-       <p>Bir parça şimşir kaşık, dövülmüş bakır cezve, oyulmuş bir tulum kemiği... Hepsi ustalardan çıkar, hepsinin arkasında onlarca yıllık bir bilek vardır. ${loc.name} işte bu hikâyelerin yazıldığı yer.</p>
-       <div class="quote">Ustaya 'ne kadar zamanda yapıyorsun' diye sormayın — 'kaç yılda öğrendin' deyin.</div>
-       <p>${loc.info}. Atölyede demonstrasyon yapan ustalar var, sorularınızı çekinmeyin. Hediyelik almak isterseniz pazarlık geleneğine saygı gösterin ama abartmayın.</p>`,
-    'karisik':
-      `<div class="lb-tag">SİZE ÖZEL</div>
-       <h5><em>${loc.name}</em>: tercihlerinize göre seçildi</h5>
-       <p>Cevaplarınız, alışkanlıklarınız ve bütçeniz değerlendirildiğinde ${loc.name}, bu rotada görünmesi gereken bir noktaydı. Genel ortalamadan farklı, kişisel bir tercih.</p>
-       <p>${loc.info}.</p>`,
-  };
-  return intros[route.key] || intros.karisik;
-}
-
-// Doğu Karadeniz'deki benzer noktaları render et
-function renderSimilarLocations(routeKey){
-  const list = SIMILAR_LOCATIONS[routeKey];
-  if(!list || list.length===0) return '';
-  const route = ROUTES.find(r=>r.key===routeKey);
-  const routeShortName = route ? route.name.split(' ')[0] : '';
-  const themes = {
-    irtifa:{icon:'⛰',title:'Doğu Karadeniz\'de <em>benzer yaylalar</em>',sub:'Rize dışında, bölgenin diğer şehirlerinde de yüksek rakımlı keşif noktaları sizi bekliyor.'},
-    mayal:{icon:'🍽',title:'Doğu Karadeniz\'in <em>diğer lezzetleri</em>',sub:'Trabzon\'dan Artvin\'e, bölgenin yöresel sofralarını da deneyin.'},
-    kadim:{icon:'⌘',title:'Doğu Karadeniz\'in <em>diğer mirası</em>',sub:'Bölgenin kalelerinden manastırlarına, tarihi izlerini sürmeye devam edin.'},
-    akim:{icon:'≈',title:'Doğu Karadeniz\'in <em>diğer suları</em>',sub:'Şelaleler, mağaralar ve adrenalin için bölgenin diğer noktaları.'},
-    huner:{icon:'✦',title:'Doğu Karadeniz\'in <em>diğer ustaları</em>',sub:'Bölgedeki diğer zanaatkâr atölyeleri ve hediyelik durakları.'},
-    karisik:{icon:'★',title:'Doğu Karadeniz\'de <em>özel seçki</em>',sub:'Bölgenin farklı şehirlerinden öne çıkan noktalar.'},
-  };
-  const theme = themes[routeKey] || themes.karisik;
-
-  return `
-    <div class="similar-block">
-      <div class="similar-head">
-        <div class="l">
-          <div class="ey">AYRICA · BÖLGEDEN</div>
-          <div class="ti">${theme.title}</div>
-          <div class="sub">${theme.sub}</div>
-        </div>
-        <div class="ic">${theme.icon}</div>
-      </div>
-      <div class="similar-list">
-        ${list.map(s=>{
-          const cityColor = CITY_COLORS[s.city] || '#666';
-          const mapUrl = `https://maps.google.com/?q=${encodeURIComponent(s.mapQuery)}`;
-          return `
-            <a href="${mapUrl}" target="_blank" class="sim-card" style="text-decoration:none">
-              <div class="city-tag" style="background:${cityColor}">${s.city}</div>
-              <div class="body">
-                <div class="nm">${s.name}</div>
-                <div class="info">${s.info}</div>
-                <div class="meta">
-                  <span>📍 ~${s.km} km</span>
-                  ${s.altitude ? `<span>⛰ ${s.altitude}m</span>` : ''}
-                </div>
-              </div>
-              <div class="arr">→</div>
-            </a>
-          `;
-        }).join('')}
-      </div>
-    </div>
-  `;
-}
-
-function buildGoogleMapsRouteUrl(route){
-  const origin = route.locations[0];
-  const dest = route.locations[route.locations.length-1];
-  const waypoints = route.locations.slice(1,-1).map(l=>encodeURIComponent(l.name+', Rize')).join('|');
-  return `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(origin.name+', Rize')}&destination=${encodeURIComponent(dest.name+', Rize')}&waypoints=${waypoints}`;
-}
-
-// Map render
-function renderMap(){
-  // Varsayılan tüm rota gösterimi
-  setTimeout(()=>{
-    const allPill = document.querySelector('.map-route-pill[data-route="all"]');
-    if(allPill) filterMapBy('all', allPill);
-  }, 50);
-}
-
-function toggleLike(el){
-  el.classList.toggle('liked');
-  const span = el.querySelector('span');
-  if(span){
-    const n = parseInt(span.textContent);
-    span.textContent = el.classList.contains('liked') ? n+1 : n-1;
-  }
-}
-
-// ==================== QR SCAN + CATEGORY QUIZ ====================
-function simulateQRScan(){
-  // First — show category picker
-  state.quizProgress = {current:0,correct:0,wrong:0,answered:[]};
-  const sheet = document.getElementById('quiz-sheet');
-  const backdrop = document.getElementById('quiz-backdrop');
-  sheet.innerHTML = `
-    <div class="qbadge">QR OKUNDU · RİZE MERKEZ</div>
-    <div class="cat-title"><em>Bilgi</em> Yarışması</div>
-    <div class="cat-sub">5 soru, her doğru 5 puan. 2+ yanlışta sadece 2 puan kazanırsın. Önce kategori seç:</div>
-    <div class="cat-grid" id="cat-grid">
-      ${QUIZ_CATEGORIES.map(c=>`
-        <div class="cat-opt" data-cat="${c.id}" onclick="selectCategory('${c.id}',this)">
-          <div class="ico">${c.ico}</div>
-          <div class="nm">${c.name}</div>
-        </div>`).join('')}
-    </div>
-    <button class="quiz-close" id="start-quiz-btn" disabled style="opacity:.5;margin-top:16px" onclick="startQuiz()">Yarışmayı Başlat</button>
-  `;
-  backdrop.classList.add('open');
-  sheet.classList.add('open');
-}
-
-function selectCategory(cat, el){
-  document.querySelectorAll('.cat-opt').forEach(o=>o.classList.remove('selected'));
-  el.classList.add('selected');
-  state.quizCategory = cat;
-  const btn = document.getElementById('start-quiz-btn');
-  btn.disabled = false;
-  btn.style.opacity = '1';
-}
-
-function startQuiz(){
-  state.quizProgress = {current:0,correct:0,wrong:0,answered:[]};
-  renderQuizQuestion();
-}
-
-function renderQuizQuestion(){
-  const cat = state.quizCategory;
-  const bank = QUIZ_BANK[cat] || QUIZ_BANK.genel;
-  const idx = state.quizProgress.current;
-  if(idx>=5) return showQuizResult();
-
-  // Tekrar olmadan rastgele soru seç
-  const availableIndexes = bank.map((_,i)=>i).filter(i=>{
-    const key = cat + '_' + i;
-    return !state.usedQuizQuestions.has(key);
-  });
-
-  let q, qIdx;
-  if(availableIndexes.length === 0){
-    // Bütün sorular bittiyse havuzu sıfırla
-    state.usedQuizQuestions = new Set();
-    qIdx = Math.floor(Math.random() * bank.length);
-    q = bank[qIdx];
+  // Hikâye bölümü
+  let story;
+  if(loc.blog){
+    story = loc.blog;
   } else {
-    qIdx = availableIndexes[Math.floor(Math.random() * availableIndexes.length)];
-    q = bank[qIdx];
-  }
-  state.usedQuizQuestions.add(cat + '_' + qIdx);
-
-  // Bu yarışmadaki seçilmiş soruları da tut ki aynı turda tekrar gelmesin
-  state.quizProgress.usedInThisRound = state.quizProgress.usedInThisRound || [];
-  state.quizProgress.usedInThisRound.push(qIdx);
-  state.quizProgress.currentQ = q;
-
-  const sheet = document.getElementById('quiz-sheet');
-  const catObj = QUIZ_CATEGORIES.find(c=>c.id===cat);
-  const dots = Array.from({length:5},(_,i)=>{
-    const ans = state.quizProgress.answered[i];
-    if(ans===true) return '<div class="q-dot correct"></div>';
-    if(ans===false) return '<div class="q-dot wrong"></div>';
-    if(i===idx) return '<div class="q-dot active"></div>';
-    return '<div class="q-dot"></div>';
-  }).join('');
-
-  sheet.innerHTML = `
-    <div class="qbadge">${catObj.ico} ${catObj.name.toUpperCase()} · ${idx+1}/5</div>
-    <div class="q-head" style="margin-top:14px">
-      <div class="loc">RİZE · SORU ${idx+1}</div>
-      <div class="pts">5p</div>
-    </div>
-    <div class="q-progress-dots">${dots}</div>
-    <div class="q-text">${q.q}</div>
-    <div class="quiz-options" id="quiz-options">
-      ${q.a.map((opt,i)=>`
-        <div class="q-opt" data-idx="${i}" onclick="answerQuestion(${i},${q.c})">
-          <div class="alph">${['A','B','C','D'][i]}</div>${opt}
-        </div>`).join('')}
-    </div>
-  `;
-}
-
-function answerQuestion(chosen, correct){
-  const opts = document.querySelectorAll('#quiz-options .q-opt');
-  opts.forEach(o=>o.classList.add('disabled'));
-  if(chosen===correct){
-    opts[chosen].classList.add('correct');
-    state.quizProgress.correct++;
-    state.quizProgress.answered.push(true);
-  } else {
-    opts[chosen].classList.add('wrong');
-    opts[correct].classList.add('correct');
-    state.quizProgress.wrong++;
-    state.quizProgress.answered.push(false);
-  }
-  state.quizProgress.current++;
-  setTimeout(()=>{
-    if(state.quizProgress.current>=5) showQuizResult();
-    else renderQuizQuestion();
-  }, 1200);
-}
-
-function showQuizResult(){
-  const {correct,wrong} = state.quizProgress;
-  // Kural: 2 ya da daha fazla yanlış → sadece 2 puan. Aksi halde doğrular × 5
-  let earned;
-  if(wrong>=2){ earned = 2; }
-  else { earned = correct * 5; }
-
-  state.points += earned;
-  state.scannedQRs++;
-  state.distanceKm = +(state.distanceKm + 1.2).toFixed(1);
-  if(state.points >= state.level * 200) state.level++;
-
-  const sheet = document.getElementById('quiz-sheet');
-  const msg = correct===5 ? '🎉 <em>Kusursuz!</em>' : correct>=3 ? '<em>Aferin!</em>' : correct>=1 ? 'İyi <em>deneme</em>' : 'Sorun <em>değil</em>';
-  sheet.innerHTML = `
-    <div class="qbadge" style="background:${earned>10?'var(--copper)':'var(--tea-600)'}">${earned>10?'HARİKA':'TAMAMLANDI'}</div>
-    <div class="quiz-final">
-      <div class="big">${msg}</div>
-      <div class="score-grid">
-        <div class="sg"><div class="n">${correct}</div><div class="l">Doğru</div></div>
-        <div class="sg"><div class="n" style="color:var(--danger)">${wrong}</div><div class="l">Yanlış</div></div>
-        <div class="sg"><div class="n" style="color:var(--copper)">${earned}</div><div class="l">Puan</div></div>
-      </div>
-      <div class="pts-won">+${earned}p kazandın</div>
-      ${wrong>=2?'<div style="font-size:11px;color:var(--ink-soft);margin-top:10px;line-height:1.5">2+ yanlış olduğu için ödül 2 puana düşürüldü. Bir sonraki turda daha dikkatli! 💪</div>':''}
-    </div>
-    <button class="quiz-close" onclick="closeQuiz()">Tamamla</button>
-  `;
-}
-
-function closeQuiz(){
-  document.getElementById('quiz-backdrop').classList.remove('open');
-  document.getElementById('quiz-sheet').classList.remove('open');
-  setTimeout(()=>{ if(state.current==='scan') navigate('routes-select'); }, 400);
-}
-
-// ==================== PROFILE & SETTINGS ====================
-function renderProfile(){
-  const p = state.profile || {};
-  const hasProfile = !!(p.name);
-  const fullName = hasProfile ? `${p.name} ${p.surname||''}`.trim() : 'Misafir Kâşif';
-  const initial = (hasProfile ? p.name[0] : 'M').toUpperCase();
-
-  document.getElementById('prof-name').textContent = fullName;
-  const avatar = document.getElementById('prof-avatar');
-  if(p.avatar){
-    avatar.innerHTML = `<img src="${p.avatar}"><div class="cam-overlay">📷</div>`;
-  } else {
-    avatar.innerHTML = `<span id="prof-initials">${initial}</span><div class="cam-overlay">📷</div>`;
-  }
-  document.getElementById('prof-lvl').textContent = `LVL ${String(state.level).padStart(2,'0')}`;
-  const titles = ['Yeni Kâşif','Çay Sevdalısı','Yayla Kâşifi','Çay Ustası','Rize Fatihi'];
-  document.getElementById('prof-title').textContent = '· '+(titles[Math.min(state.level-1, titles.length-1)]||'Usta Kâşif');
-  document.getElementById('prof-privacy').innerHTML = (p.isPublic!==false) ? `${ICONS.globe} HERKESE AÇIK` : `${ICONS.lock} GİZLİ`;
-
-  const prev = (state.level-1)*200, next = state.level*200;
-  const pct = Math.min(100, Math.max(0, ((state.points-prev)/(next-prev))*100));
-  document.getElementById('prof-fill').style.width = pct+'%';
-  document.getElementById('prof-progress').textContent = `${state.points.toLocaleString('tr-TR')} / ${next.toLocaleString('tr-TR')} puan`;
-  document.getElementById('prof-nextlvl').textContent = `Seviye ${state.level+1}'e`;
-
-  document.getElementById('ps-routes').innerHTML = `${state.completedRoutes}<span class="u"> /6</span>`;
-  document.getElementById('ps-stops').textContent = state.completedStops.size;
-  document.getElementById('ps-km').innerHTML = `${state.distanceKm}<span class="u"> km</span>`;
-  document.getElementById('ps-qr').textContent = state.scannedQRs;
-}
-
-function renderUserPhotos(){
-  const grid = document.getElementById('my-photos-grid');
-  if(!grid) return;
-  if(!state.uploadedPhotos || state.uploadedPhotos.length===0){
-    grid.innerHTML = `
-      <div style="background:var(--white);border:1px dashed var(--line);border-radius:14px;padding:28px 20px;text-align:center">
-        <div style="font-size:32px;margin-bottom:10px;opacity:.5">🖼</div>
-        <div style="font-size:12.5px;color:var(--ink-soft);line-height:1.5">Henüz resim yüklemediniz.<br>Yukarıdaki "Resim Ekle" butonu ile başlayın.</div>
-      </div>`;
-    return;
-  }
-  grid.innerHTML = `
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px">
-      ${state.uploadedPhotos.map((ph,i)=>`
-        <div style="aspect-ratio:1;border-radius:10px;overflow:hidden;background:var(--mist);position:relative;cursor:pointer" onclick="viewUserPhoto(${i})">
-          <img src="${ph.src}" style="width:100%;height:100%;object-fit:cover;display:block">
-          ${ph.location ? `<div style="position:absolute;bottom:0;left:0;right:0;padding:4px 6px;background:linear-gradient(to top,rgba(0,0,0,.7),transparent);font-size:8.5px;color:#fff;font-family:'Geist Mono',monospace;letter-spacing:.05em">📍 ${ph.location}</div>` : ''}
-        </div>
-      `).join('')}
-    </div>`;
-}
-
-// Profil resim galerisine yükleme
-function uploadProfilePhoto(ev){
-  const files = Array.from(ev.target.files || []);
-  if(files.length===0) return;
-
-  files.forEach(file=>{
-    if(file.size > 5*1024*1024){
-      showToast(`${file.name} 5MB'dan büyük, atlanıyor`, false);
-      return;
-    }
-    const reader = new FileReader();
-    reader.onload = (e)=>{
-      const date = new Date();
-      state.uploadedPhotos.unshift({
-        src: e.target.result,
-        date: date.toLocaleDateString('tr-TR'),
-        location: state.activeRoute ? (ROUTES.find(r=>r.key===state.activeRoute)?.name || 'Rize') : 'Rize',
-      });
-      renderUserPhotos();
-    };
-    reader.readAsDataURL(file);
-  });
-  // input sıfırla ki aynı dosya tekrar seçilebilsin
-  ev.target.value = '';
-  showToast(`${files.length} resim yüklendi`);
-}
-
-// Resim büyütme görünümü
-function viewUserPhoto(idx){
-  const ph = state.uploadedPhotos[idx];
-  if(!ph) return;
-  const html = `
-    <div id="photo-view-modal" style="position:absolute;inset:0;background:rgba(0,0,0,.92);z-index:290;display:flex;align-items:center;justify-content:center;animation:fadeInUp .25s ease" onclick="closePhotoView()">
-      <div style="position:absolute;top:50px;right:18px;width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.18);color:#fff;font-size:20px;display:flex;align-items:center;justify-content:center;cursor:pointer">✕</div>
-      <img src="${ph.src}" style="max-width:90%;max-height:80%;border-radius:14px;box-shadow:0 30px 80px 
+    const intros = {
+      'irtifa':
+        `<div class="lb-tag">YAYLA HİKÂYESİ</div>
+         <h5><em>${loc.name}</em>: bulutların üzerinde bir nokta</h5>
+         <p>Rakımı ${loc.altitude} metreyi bulan ${loc.name}, Kaçkar dağ silsilesinin sessiz tanıklarından biri. Yaz aylarında çiçek tarlaları, kış aylarında bembeyaz örtüsüyle her mevsim farklı bir hikâye anlatır.</p>
+         <div class="quote">Yukarıda hava farklı kokar — yarısı çay, yarısı kekik, üçüncü payı sis.</div>
+         <p>${loc.info}. ${loc.altitude>2000?'Yüksek rakım nedeniyle nefes nefese kalabilirsiniz, yavaş çıkmanızı öneririz.':'Aile dostu bir yayla, çocuklar bile rahatça keşfedebilir.'}</p>`,
+      'mayal':
+        `<div class="lb-tag">SOFRA HİKÂYESİ</div>
+         <h5><em>${loc.name}</em>'da mayalanan damak</h5>
+         <p>Rize sofrası, dağdan inen suyun bereketine, denizden gelen taze ürüne, bahçeden toplanan otlara dayanır. ${loc.name}, bu mayanın ustaca yoğrulduğu yerlerden biri.</p>
+         <div class="quote">Burada yemek tabağa değil, sohbete servis edilir.</div>
 
